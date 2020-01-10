@@ -1,6 +1,10 @@
 //눈이 인식되면 현재 웹캠을 캡쳐한다. 눈을 인식하는 것이 얼굴을 인식하는 것 보다 검출률이 더 좋다.
 //Issue : 조금 더 얼굴인식을 정확하게 할 방법을 고려해보자.
-#include <iostream>
+//해결 : 1.최솟값과 최댓값의 차이를 구해 비율을 정한 후 너무 밝은 이미지는 전반적으로 어둡게, 너무 어두운 이미지는 전반적으로 밝게 보정해줘서
+//       정확성을 높였다.
+//       2.간간히 눈의 좌표가 말이 안되는 곳에 잡힐 때가 있다. 우선 발견한 것은 눈을 수직으로 인식한다. 눈의 y좌표가 40이상이면 검출이 안되게 했다.
+//         
+#include <iostream
 #include <opencv2/opencv.hpp>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,6 +51,14 @@ int main(int argc, char* argv[])
                 cvtColor(frame, grayframe, cv::COLOR_BGR2GRAY);
                 equalizeHist(grayframe, grayframe);
                 vector<Rect> faces,eyes;
+                double minval, maxval;
+                minMaxIdx(frame, &minval, &maxval);
+                double ratio = (maxval - minval) / 255.0;
+                frame = (frame-minval)/ratio;
+                //화소의 최댓값과 최솟값의 차이를 구한다.
+                //만약 ratio가 1보다 작으면 전체적으로 어두운 거고 1보다 크면 전체적으로 밝은 것.
+                //이 구한 ratio로 나눠 화면을 보정해준다. 화면이 전체적으로 어두운 경우 전체적으로 밝아지는 효과를 볼 수 있다.
+
                 //face_classifier.detectMultiScale(grayframe, faces,
                 //    1.1, // increase search scale by 10% each pass
                 //    3,   // merge groups of three detections
@@ -65,13 +77,18 @@ int main(int argc, char* argv[])
                     cout << buf << '\n';
                     imwrite(buf, frame);
                     index++;
-                    for (int i = 0; i < eyes.size(); i++) {
+                    if (abs(eyes[0].y - eyes[1].y) <= 40)//테스트 해본 결과 고개를 돌려도 눈의 y좌표가 50이상 차이날 수 없다.
+                    {
+                        for (int i = 0; i < eyes.size(); i++) {
 
-                        Point lb(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height);
-                        Point tr(eyes[i].x, eyes[i].y);
-                        rectangle(frame, tr, lb, Scalar(0, 0, 255));
+                            Point lb(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height);
+                            Point tr(eyes[i].x, eyes[i].y);
+                            cout << i << " " << " " << eyes[i].x << " " << eyes[i].y << '\n';
+                            rectangle(frame, tr, lb, Scalar(0, 0, 255));
 
+                        }
                     }
+                    
                 }
                 /*if (faces.size() == 1)
                 {
@@ -109,4 +126,5 @@ int main(int argc, char* argv[])
     return 0;
 
 }
+
 
