@@ -1,6 +1,6 @@
 //pc에 장착되어있는 cam을 이용하여 얼굴인식 및 눈 인식.
 //opencv 폴더에 기본으로 있는 하르 기반 검출기를 이용한다.
-//issue : 얼굴과 눈을 동시에 인식하려니 카메라가 버벅거린다.
+//Issue : 얼굴과 눈을 동시에 인식하려니 카메라가 버벅거린다.
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
